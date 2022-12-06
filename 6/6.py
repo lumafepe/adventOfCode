@@ -1,6 +1,6 @@
+v=14
 with open("6.txt","r") as f:
-    lines,i,f=f.readlines(),0,14
-    while len(set(lines[0][i:f])) != len(lines[0][i:f]):
-        i,f=i+1,f+1
-print(f)
-        
+    line,i=f.readlines()[0],0
+    while len(set(line[i:i+v])) != len(line[i:i+v]):
+        i+=1
+print(i+v)
