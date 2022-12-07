@@ -1,56 +1,77 @@
-from functools import reduce  # forward compatibility for Python 3
-import operator
 with open("7.txt","r") as f:
     lines=f.read()
 
 commands=lines.split('$ ')
 commands=commands[1:]
 filesystem={'/':{}}
-currentFile=[]
-
-def getFromDict(dataDict, mapList):
-    return reduce(operator.getitem, mapList, dataDict)
-
-def setInDict(dataDict, mapList,key, value):
-    getFromDict(dataDict, mapList)[key] = value
-
-
+pwd = []
+def getFolder():
+    curr=filesystem
+    for i in pwd:
+        curr=curr[i]
+    return curr
 
 for command in commands:
+    currFS=getFolder()
     head,*tail=command.split('\n')[:-1]
     if head=='ls':
         for file in tail:
             a,name=file.split(' ')
             if a=='dir':
-                setInDict(filesystem, currentFile,name, {})
+                currFS[name]={}
             else:
-                setInDict(filesystem, currentFile,name,int(a))
+                currFS[name]=int(a)
     else:
         cd,dir=head.split(' ')
         if dir=='/':
-            currentFile=['/']
+            pwd=['/']
+            
         elif dir=='..':
-            currentFile.pop()
-        else: currentFile.append(dir)
-     
-folderSize=[]     
+            pwd.pop()
+        else: 
+            pwd.append(dir)
 
-def printFolderSize(filesS,prevName=''):
-    lens=[]
-    inHere=0
-    for n,files in filesS.items():
-        if type(files)==int:
-            inHere+=files
+
+addFoldersSize={}
+
+def getFolderSize(name,system):
+    if system=={}:
+        addFoldersSize[name]=0
+        return 0
+    elif type(system)==int:
+        addFoldersSize[name]=system
+        return system
+    total=0
+    for k,v in system.items():
+        este=getFolderSize(name+' '+k,v)
+        total+=este
+    addFoldersSize[name]=total
+    return total
+        
+
+
+
+AllITems=[]
+def recursiveCalculate(system):
+    if system=={}:
+        return 0
+    thisFolder=0
+    for i in system.values():
+        if type(i)==int:
+            thisFolder+=i
         else:
-            lens.append((n,printFolderSize(files,prevName+' '+n)))
-    total=inHere+sum(map(lambda x:x[1],lens))
-    if total>100000:
-        for (n,t) in lens:
-            if t<100000:
-                folderSize.append((prevName+' '+n,t))
-                
-    return total     
+            thisFolder+=recursiveCalculate(i)
+    AllITems.append(thisFolder)
+    return thisFolder
 
-printFolderSize(filesystem)
-for i in folderSize:
-    print(i)
+getFolderSize('',filesystem)
+
+needeed = 30000000
+has= 70000000-addFoldersSize[' /']
+
+print(min(filter(lambda x: has+x>needeed,addFoldersSize.values())))
+
+ 
+
+        
+         
